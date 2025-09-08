@@ -21,8 +21,8 @@ export function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [accountType, setAccountType] = useState("CLIENT");
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    firstname: "",
+    lastname: "",
     avatar: "https://images.unsplash.com/photo-1750816204148-5d02aff367cb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZWZhdWx0JTIwYXZhdGFyJTIwcGxhY2Vob2xkZXJ8ZW58MXx8fHwxNzU3MDU4MjM4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
     bio: "",
     email: "",
@@ -32,6 +32,8 @@ export function SignupPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [firstnameError, setFirstnameError] = useState("");
+  const [lastnameError, setLastnameError] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>("");
 
@@ -49,8 +51,16 @@ export function SignupPage() {
   // Gestionnaire de changement pour les champs du formulaire
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'firstname') {
+      setFirstnameError(value.trim() === "" ? "Veuillez saisir votre prénom" : "");
+    }
+    if (field === 'lastname') {
+      setLastnameError(value.trim() === "" ? "Veuillez saisir votre nom" : "");
+    }
     if (field === 'email') {
-      if (value && !validateEmail(value)) {
+      if (value.trim() === "") {
+        setEmailError("Veuillez saisir votre email");
+      } else if (!validateEmail(value)) {
         setEmailError("Veuillez saisir une adresse email valide");
       } else {
         setEmailError("");
@@ -105,8 +115,8 @@ export function SignupPage() {
   // Vérifier si le formulaire est valide
   const isFormValid = () => {
     return (
-      formData.firstName.trim() !== "" &&
-      formData.lastName.trim() !== "" &&
+      formData.firstname.trim() !== "" &&
+      formData.lastname.trim() !== "" &&
       formData.email.trim() !== "" &&
       validateEmail(formData.email) &&
       formData.password.trim() !== "" &&
@@ -131,8 +141,8 @@ export function SignupPage() {
     }
     setLoading(true);
     const formDataToSend = new FormData();
-    formDataToSend.append('firstname', formData.firstName);
-    formDataToSend.append('lastname', formData.lastName);
+    formDataToSend.append('firstname', formData.firstname);
+    formDataToSend.append('lastname', formData.lastname);
     formDataToSend.append('email', formData.email);
     formDataToSend.append('password_hash', hashPassword(formData.password));
     formDataToSend.append('bio', formData.bio);
@@ -150,19 +160,22 @@ export function SignupPage() {
         body: formDataToSend
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de la création du compte');
+        // Récupère le message d'erreur du backend
+        const errorData = await response.json();
+        if (
+          errorData.message &&
+          errorData.message.includes('Cet email existe déjà')
+        ) {
+          setEmailError("Un compte est déjà enregistré avec cet email");
+        } else {
+          throw new Error(errorData.message || 'Erreur lors de la création du compte');
+        }
+        setLoading(false);
+        return;
       }
       const data = await response.json();
       localStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('token', data.token);
-      // setUser({
-      //   name: `${formData.firstName} ${formData.lastName}`,
-      //   email: formData.email,
-      //   avatar: avatarPreview || formData.avatar,
-      //   bio: formData.bio,
-      //   type: accountType,
-      //   ...user
-      // });
       navigateTo('dashboard');
     } catch (error) {
       alert((error as Error).message || 'Erreur inconnue');
@@ -297,26 +310,40 @@ export function SignupPage() {
           <form onSubmit={handleSignup} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="firstName">Prénom</Label>
+                <Label htmlFor="firstname">Prénom</Label>
                 <Input
-                  id="firstName"
+                  id="firstname"
                   placeholder="Votre prénom"
-                  className="rounded-xl mt-1"
-                  value={formData.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
+                  style={firstnameError ? { borderColor: 'red', borderWidth: 1 } : {}}
+                  className={`rounded-xl mt-1 ${firstnameError ? "border-red-500 focus:border-red-500" : ""}`}
+                  value={formData.firstname}
+                  onChange={(e) => handleInputChange('firstname', e.target.value)}
                   required
                 />
+                {firstnameError && (
+                  <div className="flex items-center mt-2 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0" />
+                    <span>{firstnameError}</span>
+                  </div>
+                )}
               </div>
               <div>
-                <Label htmlFor="lastName">Nom</Label>
+                <Label htmlFor="lastname">Nom</Label>
                 <Input
-                  id="lastName"
+                  id="lastname"
                   placeholder="Votre nom"
-                  className="rounded-xl mt-1"
-                  value={formData.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target.value)}
+                  style={lastnameError ? { borderColor: 'red', borderWidth: 1 } : {}}
+                  className={`rounded-xl mt-1 ${lastnameError ? "border-red-500 focus:border-red-500" : ""}`}
+                  value={formData.lastname}
+                  onChange={(e) => handleInputChange('lastname', e.target.value)}
                   required
                 />
+                {lastnameError && (
+                  <div className="flex items-center mt-2 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0" />
+                    <span>{lastnameError}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -346,7 +373,8 @@ export function SignupPage() {
                     id="email"
                     type="email"
                     placeholder="votre@email.com"
-                    className={`pl-10 rounded-xl ${emailError ? 'border-red-500 focus:border-red-500' : ''}`}
+                    style={emailError ? { borderColor: 'red', borderWidth: 1 } : {}}
+                    className={`pl-10 rounded-xl border ${emailError ? "border-red-500 focus:border-red-500" : ""}`}
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     required
@@ -438,19 +466,19 @@ export function SignupPage() {
               </label>
             </div>
 
-            <Button 
-              type="submit" 
-              className={`w-full h-12 rounded-xl transition-all duration-200 ${
-                isFormValid() && !loading 
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed hover:bg-gray-300'
-              }`}
-              disabled={loading || !isFormValid()}
+            <Button
+              type="submit"
+              className={`w-full h-12 rounded-xl text-base font-medium transition-all duration-200
+              ${!isFormValid() || loading
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 text-white"}
+            `}
+              disabled={!isFormValid() || loading}
             >
               {loading ? "Création du compte..." : "Créer mon compte"}
             </Button>
             
-            {!isFormValid() && (formData.firstName || formData.lastName || formData.email || formData.password || formData.confirmPassword) && (
+            {!isFormValid() && (formData.firstname || formData.lastname || formData.email || formData.password || formData.confirmPassword) && (
               <div className="text-sm text-gray-500 text-center mt-2">
                 Veuillez remplir tous les champs correctement et accepter les conditions d'utilisation
               </div>
