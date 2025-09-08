@@ -1,25 +1,30 @@
 import { useState } from "react";
-import { Mail, Lock, User, ArrowLeft, Eye, EyeOff, CheckCircle, AlertCircle } from "lucide-react";
+import { Mail, Lock, ArrowLeft, Eye, EyeOff, CheckCircle, AlertCircle } from "lucide-react";
 import { Button } from "./ui/button.tsx";
 import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
 import { Card } from "./ui/card.tsx";
 import { Separator } from "./ui/separator.tsx";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group.tsx";
+import { Textarea } from "./ui/textarea.tsx";
 import { useRouter } from "./AppRouter.tsx";
-import flashJobLogo from "figma:asset/9bea5e19d46269495bd69a4780fc19a67320cedb.png"; 
+import flashJobLogo from "../assets/9bea5e19d46269495bd69a4780fc19a67320cedb.png";
+import { Camera } from "lucide-react";
+import { sha256 } from 'js-sha256'; 
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export function SignupPage() {
   const { navigateTo, setUser } = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [accountType, setAccountType] = useState("client");
-  
-  // États pour la validation du formulaire
+  const [accountType, setAccountType] = useState("CLIENT");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
+    avatar: "https://images.unsplash.com/photo-1750816204148-5d02aff367cb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZWZhdWx0JTIwYXZhdGFyJTIwcGxhY2Vob2xkZXJ8ZW58MXx8fHwxNzU3MDU4MjM4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+    bio: "",
     email: "",
     password: "",
     confirmPassword: ""
@@ -27,6 +32,8 @@ export function SignupPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string>("");
 
   // Fonction de validation de l'email
   const validateEmail = (email: string) => {
@@ -42,8 +49,6 @@ export function SignupPage() {
   // Gestionnaire de changement pour les champs du formulaire
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // Validation en temps réel pour l'email
     if (field === 'email') {
       if (value && !validateEmail(value)) {
         setEmailError("Veuillez saisir une adresse email valide");
@@ -51,8 +56,6 @@ export function SignupPage() {
         setEmailError("");
       }
     }
-    
-    // Validation en temps réel pour le mot de passe
     if (field === 'password') {
       if (value && !validatePassword(value)) {
         setPasswordError("Le mot de passe doit contenir au moins 8 caractères");
@@ -60,18 +63,43 @@ export function SignupPage() {
         setPasswordError("");
       }
     }
-    
-    // Vérification de la correspondance des mots de passe
     if (field === 'confirmPassword' || field === 'password') {
       const password = field === 'password' ? value : formData.password;
       const confirmPassword = field === 'confirmPassword' ? value : formData.confirmPassword;
-      
       if (confirmPassword && password !== confirmPassword) {
         setPasswordError("Les mots de passe ne correspondent pas");
       } else if (password && validatePassword(password)) {
         setPasswordError("");
       }
     }
+  };
+
+  // Gestionnaire pour l'upload de fichier avatar
+  const handleAvatarFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Veuillez sélectionner un fichier image valide.');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('La taille du fichier ne doit pas dépasser 5MB.');
+        return;
+      }
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setAvatarPreview(result);
+        setFormData(prev => ({ ...prev, avatar: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Fonction pour déclencher l'upload de fichier
+  const handleAvatarClick = () => {
+    document.getElementById('avatar-file-input')?.click();
   };
 
   // Vérifier si le formulaire est valide
@@ -91,28 +119,57 @@ export function SignupPage() {
     );
   };
 
+  // Fonction utilitaire pour hasher le mot de passe
+  function hashPassword(password: string): string {
+    return sha256(password);
+  }
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!isFormValid()) {
       return;
     }
-    
     setLoading(true);
-    
-    // Simuler une inscription
-    setTimeout(() => {
-      setUser({ 
-        name: `${formData.firstName} ${formData.lastName}`, 
-        email: formData.email,
-        avatar: '',
-        type: accountType
-      });
-      setLoading(false);
-      navigateTo('dashboard');
-    }, 1500);
-  };
+    const formDataToSend = new FormData();
+    formDataToSend.append('firstname', formData.firstName);
+    formDataToSend.append('lastname', formData.lastName);
+    formDataToSend.append('email', formData.email);
+    formDataToSend.append('password_hash', hashPassword(formData.password));
+    formDataToSend.append('bio', formData.bio);
+    formDataToSend.append('role', accountType);
 
+    if (avatarFile) {
+      formDataToSend.append('avatar', avatarFile);
+    } else {
+      formDataToSend.append('avatarUrl', formData.avatar);
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/users/signin`, {
+        method: 'POST',
+        body: formDataToSend
+      });
+      if (!response.ok) {
+        throw new Error('Erreur lors de la création du compte');
+      }
+      const data = await response.json();
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+      // setUser({
+      //   name: `${formData.firstName} ${formData.lastName}`,
+      //   email: formData.email,
+      //   avatar: avatarPreview || formData.avatar,
+      //   bio: formData.bio,
+      //   type: accountType,
+      //   ...user
+      // });
+      navigateTo('dashboard');
+    } catch (error) {
+      alert((error as Error).message || 'Erreur inconnue');
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8">
       <div className="max-w-md w-full mx-4">
@@ -137,12 +194,86 @@ export function SignupPage() {
             <p className="text-gray-600">Rejoignez la communauté FlashJob</p>
           </div>
 
+          {/* Nouveau design photo de profil */}
+          <div className="mb-6">
+            <div className="text-center">
+              <div className="relative inline-block">
+                <div 
+                  className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 border-gray-200 bg-gray-100 cursor-pointer hover:border-blue-300 transition-colors"
+                  onClick={handleAvatarClick}
+                >
+                  <img
+                    src={avatarPreview || formData.avatar || "https://images.unsplash.com/photo-1750816204148-5d02aff367cb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZWZhdWx0JTIwYXZhdGFyJTIwcGxhY2Vob2xkZXJ8ZW58MXx8fHwxNzU3MDU4MjM4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"}
+                    alt="Aperçu photo de profil"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://images.unsplash.com/photo-1750816204148-5d02aff367cb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZWZhdWx0JTIwYXZhdGFyJTIwcGxhY2Vob2xkZXJ8ZW58MXx8fHwxNzU3MDU4MjM4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral";
+                    }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors shadow-md"
+                  onClick={handleAvatarClick}
+                >
+                  <Camera className="w-4 h-4" />
+                </button>
+              </div>
+              {/* Input file caché */}
+              <input
+                id="avatar-file-input"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarFileChange}
+              />
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center justify-center space-x-2 text-xs text-gray-500">
+                  <span>Cliquez sur la photo ou</span>
+                </div>
+                <Input
+                  id="avatar-url-input"
+                  type="url"
+                  placeholder="Collez l'URL de votre photo ici"
+                  className="rounded-xl text-center text-sm"
+                  value={!avatarFile ? formData.avatar : ''}
+                  onChange={(e) => {
+                    if (!avatarFile) {
+                      handleInputChange('avatar', e.target.value);
+                      setAvatarPreview('');
+                    }
+                  }}
+                  disabled={!!avatarFile}
+                />
+                {avatarFile && (
+                  <div className="flex items-center justify-center">
+                    <button
+                      type="button"
+                      className="text-xs text-blue-600 hover:text-blue-700 underline"
+                      onClick={() => {
+                        setAvatarFile(null);
+                        setAvatarPreview('');
+                        const fileInput = document.getElementById('avatar-file-input') as HTMLInputElement;
+                        if (fileInput) fileInput.value = '';
+                      }}
+                    >
+                      Utiliser une URL à la place
+                    </button>
+                  </div>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Optionnel - Formats acceptés: JPG, PNG, GIF (max 5MB)
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Type de compte */}
           <div className="mb-6">
             <Label>Type de compte</Label>
             <RadioGroup value={accountType} onValueChange={setAccountType} className="mt-2">
               <div className="flex items-center space-x-2 p-3 border rounded-xl hover:bg-gray-50">
-                <RadioGroupItem value="client" id="client" />
+                <RadioGroupItem value="CLIENT" id="client" />
                 <Label htmlFor="client" className="flex-1 cursor-pointer">
                   <div>
                     <p className="font-medium">Client</p>
@@ -151,7 +282,7 @@ export function SignupPage() {
                 </Label>
               </div>
               <div className="flex items-center space-x-2 p-3 border rounded-xl hover:bg-gray-50">
-                <RadioGroupItem value="freelancer" id="freelancer" />
+                <RadioGroupItem value="FREELANCER" id="freelancer" />
                 <Label htmlFor="freelancer" className="flex-1 cursor-pointer">
                   <div>
                     <p className="font-medium">Prestataire</p>
@@ -186,6 +317,23 @@ export function SignupPage() {
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
                   required
                 />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="bio">Biographie</Label>
+              <div className="mt-1">
+                <Textarea
+                  id="bio"
+                  placeholder="Parlez-nous de vous... (optionnel)"
+                  className="rounded-xl resize-none"
+                  rows={3}
+                  value={formData.bio}
+                  onChange={(e) => handleInputChange('bio', e.target.value)}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Optionnel - Présentez-vous brièvement
+                </p>
               </div>
             </div>
 
@@ -279,10 +427,7 @@ export function SignupPage() {
                   required 
                 />
                 <span className="text-sm text-gray-600 leading-relaxed">
-                  J'accepte les{' '}
-                  <a href="#" className="text-blue-600 hover:underline">conditions d'utilisation</a>
-                  {' '}et la{' '}
-                  <a href="#" className="text-blue-600 hover:underline">politique de confidentialité</a>
+                  J'accepte les <a href="#" className="text-blue-600 hover:underline">conditions d'utilisation</a> et la <a href="#" className="text-blue-600 hover:underline">politique de confidentialité</a>
                 </span>
               </label>
               <label className="flex items-start space-x-3">
@@ -318,6 +463,7 @@ export function SignupPage() {
               <p className="text-sm text-gray-600">
                 Déjà un compte ?{' '}
                 <button 
+                  type="button"
                   onClick={() => navigateTo('login')} 
                   className="text-blue-600 hover:underline font-medium"
                 >
