@@ -4,12 +4,14 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { useNavigate } from "react-router-dom";
 import { Footer } from "./Footer";
-import flashJobLogo from "../assets/logo.png"; 
+
+
+import { API_URL } from "../utils/env"; // Assure-toi que le chemin est correct
 
 export function EmailVerificationPage() {
   const navigate = useNavigate();
   const [isResending, setIsResending] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(0); 
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -23,12 +25,20 @@ export function EmailVerificationPage() {
 
   const handleResendEmail = async () => {
     setIsResending(true);
-    
-    // Simuler l'envoi d'email
-    setTimeout(() => {
+    try {
+      await fetch(`${API_URL}/users/resend-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email: user?.email })
+      });
+      setResendCooldown(30);
+    } catch (error) {
+      alert("Erreur lors de l'envoi de l'email");
+    } finally {
       setIsResending(false);
-      setResendCooldown(60); // Cooldown de 60 secondes
-    }, 2000);
+    }
   };
 
   // Récupère l'email utilisateur depuis le localStorage ou affiche un email par défaut

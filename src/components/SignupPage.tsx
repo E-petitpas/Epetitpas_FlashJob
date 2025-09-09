@@ -175,7 +175,7 @@ export function SignupPage() {
       const data = await response.json();
       localStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('token', data.token);
-      navigate("/dashboard");
+      navigate("/email-verification");
     } catch (error) {
       alert((error as Error).message || 'Erreur inconnue');
     } finally {
