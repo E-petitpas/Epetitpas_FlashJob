@@ -1,11 +1,11 @@
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import { Button } from "./ui/button.tsx";
 import { Separator } from "./ui/separator.tsx";
-import { useRouter } from "./AppRouter.tsx";
-import flashJobLogo from "figma:asset/9bea5e19d46269495bd69a4780fc19a67320cedb.png";
+import { useNavigate } from "react-router-dom";
+import flashJobLogo from "../assets/logo.png"; 
 
 export function Footer() {
-  const { navigateTo } = useRouter();
+  const navigate = useNavigate();
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -37,12 +37,12 @@ export function Footer() {
           <div>
             <h3 className="font-semibold mb-4">Services</h3>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><button onClick={() => navigateTo('service')} className="hover:text-white transition-colors text-left">Design Graphique</button></li>
-              <li><button onClick={() => navigateTo('service')} className="hover:text-white transition-colors text-left">Développement Web</button></li>
-              <li><button onClick={() => navigateTo('service')} className="hover:text-white transition-colors text-left">Marketing Digital</button></li>
-              <li><button onClick={() => navigateTo('service')} className="hover:text-white transition-colors text-left">Rédaction</button></li>
-              <li><button onClick={() => navigateTo('service')} className="hover:text-white transition-colors text-left">Formation</button></li>
-              <li><button onClick={() => navigateTo('service')} className="hover:text-white transition-colors text-left">Services Pratiques</button></li>
+              <li><button onClick={() => navigate('/service')} className="hover:text-white transition-colors text-left">Design Graphique</button></li>
+              <li><button onClick={() => navigate('/service')} className="hover:text-white transition-colors text-left">Développement Web</button></li>
+              <li><button onClick={() => navigate('/service')} className="hover:text-white transition-colors text-left">Marketing Digital</button></li>
+              <li><button onClick={() => navigate('/service')} className="hover:text-white transition-colors text-left">Rédaction</button></li>
+              <li><button onClick={() => navigate('/service')} className="hover:text-white transition-colors text-left">Formation</button></li>
+              <li><button onClick={() => navigate('/service')} className="hover:text-white transition-colors text-left">Services Pratiques</button></li>
             </ul>
           </div>
 

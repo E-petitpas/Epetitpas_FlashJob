@@ -8,7 +8,7 @@ import { Separator } from "./ui/separator.tsx";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs.tsx";
 import { Alert, AlertDescription } from "./ui/alert.tsx";
 import { ImageWithFallback } from "./figma/ImageWithFallback.tsx";
-import { useRouter } from "./AppRouter.tsx";
+import { useNavigate } from "react-router-dom";
 import { projectId, publicAnonKey } from "../utils/supabase/info";
 
 // Mock data pour un service
@@ -97,7 +97,7 @@ const reviews = [
 ];
 
 export function ServiceDetailPage() {
-  const { navigateTo, routeParams } = useRouter();
+  const { navigate, routeParams } = useRouter();
   const [service, setService] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -242,7 +242,7 @@ export function ServiceDetailPage() {
               variant="ghost" 
               size="sm" 
               className="text-gray-600 hover:text-gray-900"
-              onClick={() => navigateTo('services')}
+              onClick={() => navigate('services')}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Retour aux services
@@ -260,13 +260,13 @@ export function ServiceDetailPage() {
             <div className="flex justify-center space-x-3">
               <Button
                 variant="outline"
-                onClick={() => navigateTo('services')}
+                onClick={() => navigate('services')}
                 className="rounded-xl"
               >
                 Voir tous les services
               </Button>
               <Button
-                onClick={() => navigateTo('home')}
+                onClick={() => navigate('home')}
                 className="rounded-xl bg-blue-600 hover:bg-blue-700"
               >
                 Retour à l'accueil
@@ -291,7 +291,7 @@ export function ServiceDetailPage() {
             variant="ghost" 
             size="sm" 
             className="text-gray-600 hover:text-gray-900"
-            onClick={() => navigateTo('services')}
+            onClick={() => navigate('services')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour aux services
@@ -406,7 +406,7 @@ export function ServiceDetailPage() {
                       
                       <Button 
                         className="mt-4 rounded-xl"
-                        onClick={() => navigateTo('messages')}
+                        onClick={() => navigate('messages')}
                       >
                         <MessageCircle className="w-4 h-4 mr-2" />
                         Contacter le vendeur
@@ -476,7 +476,7 @@ export function ServiceDetailPage() {
                       </ul>
                       <Button 
                         className={`w-full rounded-xl ${pkg.popular ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
-                        onClick={() => navigateTo('checkout', { 
+                        onClick={() => navigate('checkout', { 
                           serviceId: service.id,
                           package: pkg.name, 
                           price: pkg.price,

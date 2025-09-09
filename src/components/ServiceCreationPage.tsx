@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Badge } from "./ui/badge.tsx";
 import { Alert, AlertDescription } from "./ui/alert.tsx";
 import { ImageWithFallback } from "./figma/ImageWithFallback.tsx";
-import { useRouter } from "./AppRouter.tsx";
+import { useNavigate } from "react-router-dom";
 import { projectId, publicAnonKey } from "../utils/supabase/info";
 
 const categories = [
@@ -26,7 +26,7 @@ const categories = [
 const defaultServiceImage = "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzZXJ2aWNlJTIwcGxhY2Vob2xkZXJ8ZW58MXx8fHwxNzU2NzU4MzAwfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral";
 
 export function ServiceCreationPage() {
-  const { navigateTo } = useRouter();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -142,7 +142,7 @@ export function ServiceCreationPage() {
 
       const paymentResult = await paymentResponse.json();
       if (paymentResult.success) {
-        navigateTo('dashboard');
+        navigate('dashboard');
       } else {
         setError(paymentResult.error || "Erreur lors du paiement");
       }
@@ -163,7 +163,7 @@ export function ServiceCreationPage() {
             variant="ghost" 
             size="sm" 
             className="text-gray-600 hover:text-gray-900"
-            onClick={() => navigateTo('dashboard')}
+            onClick={() => navigate('dashboard')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour au dashboard
@@ -362,7 +362,7 @@ export function ServiceCreationPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigateTo('dashboard')}
+              onClick={() => navigate('dashboard')}
               className="rounded-xl"
             >
               Annuler

@@ -1,19 +1,21 @@
 import { Search, User } from "lucide-react";
 import { Button } from "./ui/button.tsx";
 import { Input } from "./ui/input.tsx";
-import { useRouter } from "./AppRouter.tsx";
 import { MessageNotification } from "./MessageNotification.tsx";
-import flashJobLogo from "figma:asset/9bea5e19d46269495bd69a4780fc19a67320cedb.png";
+import { useNavigate } from "react-router-dom";
+import flashJobLogo from "../assets/logo.png"; 
 
 export function Header() {
-  const { navigateTo, user } = useRouter();
+  const navigate = useNavigate();
+  // Simule un utilisateur connecté/déconnecté pour le test
+  const user = null; // Remplace par ta logique d'authentification
 
   return (
     <header className="w-full bg-white border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center cursor-pointer" onClick={() => navigateTo('home')}>
+          <div className="flex items-center cursor-pointer" onClick={() => navigate("/")}>
             <img src={flashJobLogo} alt="FlashJob" className="h-8 w-auto" />
           </div>
 
@@ -34,7 +36,7 @@ export function Header() {
             <Button 
               variant="ghost" 
               className="text-gray-600 hover:text-gray-900"
-              onClick={() => navigateTo('services')}
+              onClick={() => navigate("/services")}
             >
               Parcourir
             </Button>
@@ -42,12 +44,12 @@ export function Header() {
               <>
                 <MessageNotification 
                   unreadCount={3} 
-                  onViewMessages={() => navigateTo('dashboard')} 
+                  onViewMessages={() => navigate("/dashboard")} 
                 />
                 <Button 
                   variant="outline" 
                   className="rounded-xl border-gray-200 hover:bg-gray-50"
-                  onClick={() => navigateTo('dashboard')}
+                  onClick={() => navigate("/dashboard")}
                 >
                   <User className="h-4 w-4 mr-2" />
                   Mon compte
@@ -58,14 +60,14 @@ export function Header() {
                 <Button 
                   variant="outline" 
                   className="rounded-xl border-gray-200 hover:bg-gray-50"
-                  onClick={() => navigateTo('login')}
+                  onClick={() => navigate("/login")}
                 >
                   <User className="h-4 w-4 mr-2" />
                   Se connecter
                 </Button>
                 <Button 
                   className="rounded-xl bg-blue-600 hover:bg-blue-700"
-                  onClick={() => navigateTo('signup')}
+                  onClick={() => navigate("/signup")}
                 >
                   S'inscrire
                 </Button>

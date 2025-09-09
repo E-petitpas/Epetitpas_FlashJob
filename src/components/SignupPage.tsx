@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Lock, ArrowLeft, Eye, EyeOff, CheckCircle, AlertCircle } from "lucide-react";
+import { Mail, Lock, ArrowLeft, Eye, EyeOff, CheckCircle, AlertCircle, Camera } from "lucide-react";
 import { Button } from "./ui/button.tsx";
 import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
@@ -7,15 +7,14 @@ import { Card } from "./ui/card.tsx";
 import { Separator } from "./ui/separator.tsx";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group.tsx";
 import { Textarea } from "./ui/textarea.tsx";
-import { useRouter } from "./AppRouter.tsx";
-import flashJobLogo from "../assets/9bea5e19d46269495bd69a4780fc19a67320cedb.png";
-import { Camera } from "lucide-react";
-import { sha256 } from 'js-sha256'; 
+import { useNavigate } from "react-router-dom";
+import flashJobLogo from "../assets/logo.png"; 
+import { sha256 } from 'js-sha256';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export function SignupPage() {
-  const { navigateTo, setUser } = useRouter();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -176,7 +175,7 @@ export function SignupPage() {
       const data = await response.json();
       localStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('token', data.token);
-      navigateTo('dashboard');
+      navigate("/dashboard");
     } catch (error) {
       alert((error as Error).message || 'Erreur inconnue');
     } finally {
@@ -192,7 +191,7 @@ export function SignupPage() {
             variant="ghost" 
             size="sm" 
             className="text-gray-600 hover:text-gray-900"
-            onClick={() => navigateTo('home')}
+            onClick={() => navigate("/")}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour à l'accueil
@@ -207,7 +206,7 @@ export function SignupPage() {
             <p className="text-gray-600">Rejoignez la communauté FlashJob</p>
           </div>
 
-          {/* Nouveau design photo de profil */}
+          {/* Photo de profil */}
           <div className="mb-6">
             <div className="text-center">
               <div className="relative inline-block">
@@ -216,7 +215,7 @@ export function SignupPage() {
                   onClick={handleAvatarClick}
                 >
                   <img
-                    src={avatarPreview || formData.avatar || "https://images.unsplash.com/photo-1750816204148-5d02aff367cb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZWZhdWx0JTIwYXZhdGFyJTIwcGxhY2Vob2xkZXJ8ZW58MXx8fHwxNzU3MDU4MjM4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"}
+                    src={avatarPreview || formData.avatar}
                     alt="Aperçu photo de profil"
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -492,7 +491,7 @@ export function SignupPage() {
                 Déjà un compte ?{' '}
                 <button 
                   type="button"
-                  onClick={() => navigateTo('login')} 
+                  onClick={() => navigate("/login")} 
                   className="text-blue-600 hover:underline font-medium"
                 >
                   Se connecter

@@ -11,7 +11,7 @@ import { Label } from "./ui/label.tsx";
 import { Textarea } from "./ui/textarea.tsx";
 import { Alert, AlertDescription } from "./ui/alert.tsx";
 import { ImageWithFallback } from "./figma/ImageWithFallback.tsx";
-import { useRouter } from "./AppRouter.tsx";
+import { useNavigate } from "react-router-dom";
 import { MessagingPage } from "./MessagingPage.tsx";
 import { projectId, publicAnonKey } from "../utils/supabase/info";
 
@@ -351,7 +351,7 @@ function ProfileTab() {
 }
 
 // Services Tab Component
-function ServicesTab({ navigateTo }: { navigateTo: (route: string, params?: any) => void }) {
+function ServicesTab({ navigate }: { navigate: (route: string, params?: any) => void }) {
   const [services, setServices] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -483,7 +483,7 @@ function ServicesTab({ navigateTo }: { navigateTo: (route: string, params?: any)
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Mes services</h1>
         <Button
-          onClick={() => navigateTo('create-service')}
+          onClick={() => navigate('create-service')}
           className="rounded-xl bg-blue-600 hover:bg-blue-700"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -554,7 +554,7 @@ function ServicesTab({ navigateTo }: { navigateTo: (route: string, params?: any)
             Commencez à proposer vos services à la communauté FlashJob.
           </p>
           <Button
-            onClick={() => navigateTo('create-service')}
+            onClick={() => navigate('create-service')}
             className="rounded-xl bg-blue-600 hover:bg-blue-700"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -610,7 +610,7 @@ function ServicesTab({ navigateTo }: { navigateTo: (route: string, params?: any)
                         size="sm" 
                         variant="outline" 
                         className="rounded-xl"
-                        onClick={() => navigateTo('service', { serviceId: service.id })}
+                        onClick={() => navigate('service', { serviceId: service.id })}
                       >
                         <Eye className="w-3 h-3 mr-1" />
                         Voir
@@ -637,11 +637,11 @@ function ServicesTab({ navigateTo }: { navigateTo: (route: string, params?: any)
 
 export function ClientDashboard() {
   const [activeTab, setActiveTab] = useState("orders");
-  const { navigateTo, setUser } = useRouter();
+  const { navigate, setUser } = useRouter();
 
   const handleLogout = () => {
     setUser(null);
-    navigateTo('home');
+    navigate('home');
   };
 
   const sidebarItems = [
@@ -832,7 +832,7 @@ export function ClientDashboard() {
                               <Button 
                                 size="sm" 
                                 className="rounded-xl"
-                                onClick={() => navigateTo('service', { serviceId: order.id })}
+                                onClick={() => navigate('service', { serviceId: order.id })}
                               >
                                 Voir détails
                               </Button>
@@ -860,7 +860,7 @@ export function ClientDashboard() {
             )}
 
             {activeTab === "services" && (
-              <ServicesTab navigateTo={navigateTo} />
+              <ServicesTab navigate={navigate} />
             )}
 
             {activeTab === "reviews" && (

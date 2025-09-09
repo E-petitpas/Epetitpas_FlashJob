@@ -7,7 +7,7 @@ import { Badge } from "./ui/badge.tsx";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar.tsx";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select.tsx";
 import { ImageWithFallback } from "./figma/ImageWithFallback.tsx";
-import { useRouter } from "./AppRouter.tsx";
+import { useNavigate } from "react-router-dom";
 import { projectId, publicAnonKey } from "../utils/supabase/info";
 
 const categories = [
@@ -74,7 +74,7 @@ const mockServices = [
 ];
 
 export function ServiceListPage() {
-  const { navigateTo } = useRouter();
+  const navigate = useNavigate();
   const [services, setServices] = useState(mockServices);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Tous");
@@ -168,7 +168,7 @@ export function ServiceListPage() {
 
       const result = await response.json();
       if (result.success) {
-        navigateTo('checkout');
+        navigate('checkout');
       } else {
         alert(result.error || "Erreur lors de la réservation");
       }
@@ -188,7 +188,7 @@ export function ServiceListPage() {
             <p className="text-gray-600">Découvrez tous les services proposés par notre communauté</p>
           </div>
           <Button
-            onClick={() => navigateTo('create-service')}
+            onClick={() => navigate('create-service')}
             className="rounded-xl bg-blue-600 hover:bg-blue-700"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -316,7 +316,7 @@ export function ServiceListPage() {
                       variant="outline"
                       size="sm"
                       className="flex-1 rounded-xl"
-                      onClick={() => navigateTo('service', { serviceId: service.id })}
+                      onClick={() => navigate('service', { serviceId: service.id })}
                     >
                       Voir détails
                     </Button>

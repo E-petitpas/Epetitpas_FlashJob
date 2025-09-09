@@ -1,11 +1,11 @@
 import { Search, Zap } from "lucide-react";
 import { Button } from "./ui/button.tsx";
 import { Input } from "./ui/input.tsx";
-import { useRouter } from "./AppRouter.tsx";
+import { useNavigate } from "react-router-dom";
 import React from "react";
 
 export function HeroSection() {
-  const { navigateTo } = useRouter();
+  const navigate = useNavigate();
   return (
     <section className="bg-gradient-to-br from-blue-50 to-white py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -38,8 +38,9 @@ export function HeroSection() {
               />
             </div>
             <Button 
+              type="button"
               className="h-14 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium"
-              onClick={() => navigateTo('services')}
+              onClick={() => navigate('/services')}
             >
               Trouver un service
             </Button>

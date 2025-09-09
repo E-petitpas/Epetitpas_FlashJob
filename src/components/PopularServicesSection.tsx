@@ -4,7 +4,7 @@ import { Badge } from "./ui/badge.tsx";
 import { Button } from "./ui/button.tsx";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar.tsx";
 import { ImageWithFallback } from "./figma/ImageWithFallback.tsx";
-import { useRouter } from "./AppRouter.tsx";
+import { useNavigate } from "react-router-dom";
 
 const popularServices = [
   {
@@ -61,7 +61,7 @@ const popularServices = [
 ];
 
 export function PopularServicesSection() {
-  const { navigateTo } = useRouter();
+  const navigate = useNavigate();
   
   return (
     <section className="py-16 bg-gray-50">
@@ -140,7 +140,7 @@ export function PopularServicesSection() {
                   </div>
                   <Button 
                     className="rounded-xl bg-blue-600 hover:bg-blue-700"
-                    onClick={() => navigateTo('service', { serviceId: service.id })}
+                    onClick={() => navigate('/service', { state: { serviceId: service.id } })}
                   >
                     Voir le service
                   </Button>
@@ -154,7 +154,7 @@ export function PopularServicesSection() {
           <Button 
             variant="outline" 
             className="rounded-xl border-gray-200 hover:bg-gray-50 px-8 py-3"
-            onClick={() => navigateTo('service')}
+            onClick={() => navigate('/service')}
           >
             Voir tous les services populaires
           </Button>

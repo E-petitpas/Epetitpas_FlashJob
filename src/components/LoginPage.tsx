@@ -5,11 +5,11 @@ import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
 import { Card } from "./ui/card.tsx";
 import { Separator } from "./ui/separator.tsx";
-import { useRouter } from "./AppRouter.tsx";
-import flashJobLogo from "figma:asset/9bea5e19d46269495bd69a4780fc19a67320cedb.png";
+import { useNavigate } from "react-router-dom";
+import flashJobLogo from "../assets/logo.png"; 
 
 export function LoginPage() {
-  const { navigateTo, setUser } = useRouter();
+  const { navigate, setUser } = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +25,7 @@ export function LoginPage() {
         avatar: ''
       });
       setLoading(false);
-      navigateTo('dashboard');
+      navigate('dashboard');
     }, 1000);
   };
 
@@ -38,7 +38,7 @@ export function LoginPage() {
             variant="ghost" 
             size="sm" 
             className="text-gray-600 hover:text-gray-900"
-            onClick={() => navigateTo('home')}
+            onClick={() => navigate('home')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour à l'accueil
@@ -115,7 +115,7 @@ export function LoginPage() {
               <p className="text-sm text-gray-600">
                 Pas encore de compte ?{' '}
                 <button 
-                  onClick={() => navigateTo('signup')} 
+                  onClick={() => navigate('signup')} 
                   className="text-blue-600 hover:underline font-medium"
                 >
                   Créer un compte

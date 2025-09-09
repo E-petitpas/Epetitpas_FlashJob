@@ -7,7 +7,7 @@ import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group.tsx";
 import { Checkbox } from "./ui/checkbox.tsx";
-import { useRouter } from "./AppRouter.tsx";
+import { useNavigate } from "react-router-dom";
 
 // Mock data pour la commande
 const orderData = {
@@ -37,12 +37,12 @@ const orderData = {
 };
 
 export function CheckoutPage() {
-  const { navigateTo, setUser } = useRouter();
+  const { navigate, setUser } = useRouter();
 
   const handlePayment = () => {
     // Simuler un paiement réussi
     setUser({ name: 'Jean Dupont', email: 'jean.dupont@email.com' });
-    navigateTo('dashboard');
+    navigate('dashboard');
   };
 
   return (
@@ -54,7 +54,7 @@ export function CheckoutPage() {
             variant="ghost" 
             size="sm" 
             className="text-gray-600 hover:text-gray-900"
-            onClick={() => navigateTo('service')}
+            onClick={() => navigate('service')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour au service
