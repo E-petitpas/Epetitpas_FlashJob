@@ -168,7 +168,7 @@ export function ServiceListPage() {
 
       const result = await response.json();
       if (result.success) {
-        navigate('checkout');
+        navigate('/checkout');
       } else {
         alert(result.error || "Erreur lors de la réservation");
       }
@@ -188,7 +188,7 @@ export function ServiceListPage() {
             <p className="text-gray-600">Découvrez tous les services proposés par notre communauté</p>
           </div>
           <Button
-            onClick={() => navigate('create-service')}
+            onClick={() => navigate('/create-service')}
             className="rounded-xl bg-blue-600 hover:bg-blue-700"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -316,7 +316,7 @@ export function ServiceListPage() {
                       variant="outline"
                       size="sm"
                       className="flex-1 rounded-xl"
-                      onClick={() => navigate('service', { serviceId: service.id })}
+                      onClick={() => navigate(`/service/${service.id}`)}
                     >
                       Voir détails
                     </Button>

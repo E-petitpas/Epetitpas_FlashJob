@@ -163,7 +163,7 @@ export function ServiceCreationPage() {
             variant="ghost" 
             size="sm" 
             className="text-gray-600 hover:text-gray-900"
-            onClick={() => navigate('dashboard')}
+            onClick={() => navigate('/dashboard')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour au dashboard
@@ -362,7 +362,7 @@ export function ServiceCreationPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate('dashboard')}
+              onClick={() => navigate('/dashboard')}
               className="rounded-xl"
             >
               Annuler

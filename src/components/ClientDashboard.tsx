@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Package, MessageCircle, Star, User, Settings, LogOut, Clock, CheckCircle, AlertCircle, Plus, Briefcase, Edit2, Camera, Mail, Phone, MapPin, Calendar, FileText, Eye, Trash2 } from "lucide-react";
 import { Button } from "./ui/button.tsx";
 import { Card } from "./ui/card.tsx";
@@ -62,22 +62,24 @@ const statusConfig = {
 };
 
 // Profile Tab Component
-function ProfileTab() {
+function ProfileTab({ user }: { user: any }) {
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
-    name: "Jean Dupont",
-    email: "jean.dupont@email.com",
-    phone: "+33 6 12 34 56 78",
-    location: "Paris, France",
-    bio: "Passionné par le digital et toujours à la recherche de nouveaux projets créatifs.",
-    joinDate: "Mars 2024"
+    lastname: user?.lastname || "",
+    firstname: user?.firstname || "",
+    email: user?.email || "",
+    bio: user?.bio || "",
+    joinDate: user?.joinDate
+      ? new Date(user.joinDate).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' })
+      : "Mars 2024",
+    avatar: user?.avatar || ""
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [message, setMessage] = useState("");
 
   // Load profile data on component mount
-  useState(() => {
+  useEffect(() => {
     const loadProfile = async () => {
       try {
         const userId = 'current_user'; // In real app, get from auth
@@ -94,12 +96,14 @@ function ProfileTab() {
           const data = await response.json();
           if (data.profile) {
             setProfileData({
-              name: data.profile.name || "Jean Dupont",
-              email: data.profile.email || "jean.dupont@email.com",
-              phone: data.profile.phone || "+33 6 12 34 56 78",
-              location: data.profile.location || "Paris, France",
-              bio: data.profile.bio || "Passionné par le digital et toujours à la recherche de nouveaux projets créatifs.",
-              joinDate: data.profile.joinDate ? new Date(data.profile.joinDate).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' }) : "Mars 2024"
+              lastname: data.profile.lastname || "",
+              firstname: data.profile.firstname || "",
+              email: data.profile.email || "",
+              phone: data.profile.phone || "",
+              location: data.profile.location || "",
+              bio: data.profile.bio || "",
+              joinDate: data.profile.joinDate ? new Date(data.profile.joinDate).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' }) : "Mars 2024",
+              avatar: data.profile.avatar || ""
             });
           }
         }
@@ -111,7 +115,7 @@ function ProfileTab() {
     };
 
     loadProfile();
-  });
+  }, []);
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -210,9 +214,16 @@ function ProfileTab() {
           <div className="flex items-center space-x-6">
             <div className="relative">
               <Avatar className="w-24 h-24">
-                <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl">
-                  {profileData.name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
+                {profileData.avatar ? (
+                  <AvatarImage
+                    src={`data:image/png;base64,${profileData.avatar}`}
+                    alt="Avatar utilisateur"
+                  />
+                ) : (
+                  <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl">
+                    {`${profileData.firstname?.[0] || ""}${profileData.lastname?.[0] || ""}`.toUpperCase()}
+                  </AvatarFallback>
+                )}
               </Avatar>
               {isEditing && (
                 <button className="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors">
@@ -221,7 +232,9 @@ function ProfileTab() {
               )}
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">{profileData.name}</h2>
+              <h2 className="text-xl font-semibold text-gray-900">
+                {`${profileData.firstname} ${profileData.lastname}`.trim()}
+              </h2>
               <p className="text-gray-500">Client depuis {profileData.joinDate}</p>
               {!isEditing && (
                 <p className="text-sm text-gray-600 mt-1">{profileData.email}</p>
@@ -233,19 +246,31 @@ function ProfileTab() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name">Nom complet</Label>
+                <Label htmlFor="lastname">Nom</Label>
                 {isEditing ? (
                   <Input
-                    id="name"
-                    value={profileData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    id="lastname"
+                    value={profileData.lastname}
+                    onChange={(e) => handleInputChange('lastname', e.target.value)}
                     className="rounded-xl mt-1"
                   />
                 ) : (
-                  <p className="mt-1 text-gray-900">{profileData.name}</p>
+                  <p className="mt-1 text-gray-900">{profileData.lastname}</p>
                 )}
               </div>
-
+              <div>
+                <Label htmlFor="firstname">Prénom</Label>
+                {isEditing ? (
+                  <Input
+                    id="firstname"
+                    value={profileData.firstname}
+                    onChange={(e) => handleInputChange('firstname', e.target.value)}
+                    className="rounded-xl mt-1"
+                  />
+                ) : (
+                  <p className="mt-1 text-gray-900">{profileData.firstname}</p>
+                )}
+              </div>
               <div>
                 <Label htmlFor="email">Email</Label>
                 {isEditing ? (
@@ -263,43 +288,9 @@ function ProfileTab() {
                   </div>
                 )}
               </div>
-
-              <div>
-                <Label htmlFor="phone">Téléphone</Label>
-                {isEditing ? (
-                  <Input
-                    id="phone"
-                    value={profileData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="rounded-xl mt-1"
-                  />
-                ) : (
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Phone className="w-4 h-4 text-gray-400" />
-                    <p className="text-gray-900">{profileData.phone}</p>
-                  </div>
-                )}
-              </div>
             </div>
 
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="location">Localisation</Label>
-                {isEditing ? (
-                  <Input
-                    id="location"
-                    value={profileData.location}
-                    onChange={(e) => handleInputChange('location', e.target.value)}
-                    className="rounded-xl mt-1"
-                  />
-                ) : (
-                  <div className="flex items-center space-x-2 mt-1">
-                    <MapPin className="w-4 h-4 text-gray-400" />
-                    <p className="text-gray-900">{profileData.location}</p>
-                  </div>
-                )}
-              </div>
-
               <div>
                 <Label htmlFor="bio">Bio</Label>
                 {isEditing ? (
@@ -387,7 +378,7 @@ function ServicesTab({ navigate }: { navigate: (route: string, params?: any) => 
   ];
 
   // Load user's services
-  useState(() => {
+  useEffect(() => {
     const loadServices = async () => {
       try {
         const userId = 'current_user'; // In real app, get from auth
@@ -425,7 +416,7 @@ function ServicesTab({ navigate }: { navigate: (route: string, params?: any) => 
     };
 
     loadServices();
-  });
+  }, []);
 
   const handleDeleteService = async (serviceId: string) => {
     if (confirm("Êtes-vous sûr de vouloir supprimer ce service ?")) {
@@ -483,7 +474,7 @@ function ServicesTab({ navigate }: { navigate: (route: string, params?: any) => 
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Mes services</h1>
         <Button
-          onClick={() => navigate('create-service')}
+          onClick={() => navigate('/create-service')}
           className="rounded-xl bg-blue-600 hover:bg-blue-700"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -554,7 +545,7 @@ function ServicesTab({ navigate }: { navigate: (route: string, params?: any) => 
             Commencez à proposer vos services à la communauté FlashJob.
           </p>
           <Button
-            onClick={() => navigate('create-service')}
+            onClick={() => navigate('/create-service')}
             className="rounded-xl bg-blue-600 hover:bg-blue-700"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -610,7 +601,7 @@ function ServicesTab({ navigate }: { navigate: (route: string, params?: any) => 
                         size="sm" 
                         variant="outline" 
                         className="rounded-xl"
-                        onClick={() => navigate('service', { serviceId: service.id })}
+                        onClick={() => navigate('/service', { serviceId: service.id })}
                       >
                         <Eye className="w-3 h-3 mr-1" />
                         Voir
@@ -637,11 +628,18 @@ function ServicesTab({ navigate }: { navigate: (route: string, params?: any) => 
 
 export function ClientDashboard() {
   const [activeTab, setActiveTab] = useState("orders");
-  const { navigate, setUser } = useRouter();
+  const navigate = useNavigate();
+
+  // Récupère l'utilisateur depuis le localStorage
+  const [user, setUser] = useState(() => {
+    const stored = localStorage.getItem("user");
+    return stored ? JSON.parse(stored) : null;
+  });
 
   const handleLogout = () => {
-    setUser(null);
-    navigate('home');
+    // Si tu utilises un contexte utilisateur, adapte cette partie
+    // setUser(null); // à commenter ou à adapter selon ton contexte
+    navigate("/home");
   };
 
   const sidebarItems = [
@@ -663,12 +661,29 @@ export function ClientDashboard() {
               {/* Profil utilisateur */}
               <div className="text-center mb-6">
                 <Avatar className="w-16 h-16 mx-auto mb-3">
+                  {/* Affiche l'image de l'utilisateur si elle existe */}
+                  {user?.avatar && (
+                    <AvatarImage
+                      src={`data:image/png;base64,${user.avatar}`}
+                      alt="Avatar utilisateur"
+                    />
+                  )}
                   <AvatarFallback className="bg-blue-100 text-blue-600 text-lg">
-                    JD
+                    {user
+                      ? `${user.firstname?.[0] || ""}${user.lastname?.[0] || ""}`.toUpperCase()
+                      : "JD"}
                   </AvatarFallback>
                 </Avatar>
-                <h2 className="font-semibold text-gray-900">Jean Dupont</h2>
-                <p className="text-sm text-gray-500">Client depuis Mars 2024</p>
+                <h2 className="font-semibold text-gray-900">
+                  {user
+                    ? `${user.firstname || ""} ${user.lastname || ""}`.trim()
+                    : "Jean Dupont"}
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Client depuis {user?.joinDate
+                    ? new Date(user.joinDate).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' })
+                    : "Mars 2024"}
+                </p>
               </div>
 
               {/* Menu */}
@@ -875,7 +890,7 @@ export function ClientDashboard() {
             )}
 
             {activeTab === "profile" && (
-              <ProfileTab />
+              <ProfileTab user={user} />
             )}
 
             {activeTab === "settings" && (

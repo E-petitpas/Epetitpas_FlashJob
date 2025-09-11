@@ -37,12 +37,12 @@ const orderData = {
 };
 
 export function CheckoutPage() {
-  const { navigate, setUser } = useRouter();
+  const navigate = useNavigate();
 
   const handlePayment = () => {
     // Simuler un paiement réussi
-    setUser({ name: 'Jean Dupont', email: 'jean.dupont@email.com' });
-    navigate('dashboard');
+    // setUser({ name: 'Jean Dupont', email: 'jean.dupont@email.com' }); // à retirer si inutilisé
+    navigate('/dashboard');
   };
 
   return (
@@ -54,7 +54,7 @@ export function CheckoutPage() {
             variant="ghost" 
             size="sm" 
             className="text-gray-600 hover:text-gray-900"
-            onClick={() => navigate('service')}
+            onClick={() => navigate('/service')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour au service

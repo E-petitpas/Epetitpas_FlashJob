@@ -99,7 +99,7 @@ export function MyServicesPage() {
               variant="ghost" 
               size="sm" 
               className="text-gray-600 hover:text-gray-900"
-              onClick={() => navigate('dashboard')}
+              onClick={() => navigate('/dashboard')}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Retour au dashboard
@@ -127,7 +127,7 @@ export function MyServicesPage() {
             variant="ghost" 
             size="sm" 
             className="text-gray-600 hover:text-gray-900"
-            onClick={() => navigate('dashboard')}
+            onClick={() => navigate('/dashboard')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour au dashboard
@@ -141,7 +141,7 @@ export function MyServicesPage() {
               <p className="text-gray-600">Gérez vos offres de service sur FlashJob</p>
             </div>
             <Button
-              onClick={() => navigate('create-service')}
+              onClick={() => navigate('/create-service')}
               className="rounded-xl bg-blue-600 hover:bg-blue-700"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -212,7 +212,7 @@ export function MyServicesPage() {
                 Commencez à proposer vos services à la communauté FlashJob.
               </p>
               <Button
-                onClick={() => navigate('create-service')}
+                onClick={() => navigate('/create-service')}
                 className="rounded-xl bg-blue-600 hover:bg-blue-700"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -268,7 +268,7 @@ export function MyServicesPage() {
                             size="sm" 
                             variant="outline" 
                             className="rounded-xl"
-                            onClick={() => navigate('service', { serviceId: service.id })}
+                            onClick={() => navigate(`/service/${service.id}`)}
                           >
                             <Eye className="w-3 h-3 mr-1" />
                             Voir

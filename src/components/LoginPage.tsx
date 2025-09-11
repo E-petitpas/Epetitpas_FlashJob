@@ -6,27 +6,51 @@ import { Label } from "./ui/label.tsx";
 import { Card } from "./ui/card.tsx";
 import { Separator } from "./ui/separator.tsx";
 import { useNavigate } from "react-router-dom";
-import flashJobLogo from "../assets/logo.png"; 
+import flashJobLogo from "../assets/logo.png";
+import { sha256 } from "js-sha256";
+import { isEmailConfirmed, login } from "../services/authService";
 
 export function LoginPage() {
-  const { navigate, setUser } = useRouter();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  let [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Simuler une connexion
-    setTimeout(() => {
-      setUser({ 
-        name: 'Jean Dupont', 
-        email: 'jean.dupont@email.com',
-        avatar: ''
-      });
+
+    try {
+      const confirmed = await isEmailConfirmed(email);
+      console.log('confirmed=', confirmed);
+
+      email = confirmed.email_user;
+      if (!confirmed.is_confirmed) {
+        setLoading(false);
+        navigate("/email-verification", { state: { email } });
+        return;
+      }
+
+      const response = await login(email, sha256(password));
+      console.log(response);
+
+      if (!response.ok) {
+        setLoading(false);
+        alert("Email ou mot de passe incorrect");
+        return;
+      }
+
+      const data = await response.json();
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
       setLoading(false);
-      navigate('dashboard');
-    }, 1000);
+      navigate("/dashboard");
+    } catch (error) {
+      throw error
+      setLoading(false);
+      alert("Erreur de connexion");
+    }
   };
 
   return (
@@ -38,7 +62,7 @@ export function LoginPage() {
             variant="ghost" 
             size="sm" 
             className="text-gray-600 hover:text-gray-900"
-            onClick={() => navigate('home')}
+            onClick={() => navigate("/")}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour à l'accueil
@@ -65,6 +89,8 @@ export function LoginPage() {
                   placeholder="votre@email.com"
                   className="pl-10 rounded-xl"
                   required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                 />
               </div>
             </div>
@@ -79,6 +105,8 @@ export function LoginPage() {
                   placeholder="Votre mot de passe"
                   className="pl-10 pr-10 rounded-xl"
                   required
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
                 />
                 <button
                   type="button"
@@ -115,7 +143,8 @@ export function LoginPage() {
               <p className="text-sm text-gray-600">
                 Pas encore de compte ?{' '}
                 <button 
-                  onClick={() => navigate('signup')} 
+                  type="button"
+                  onClick={() => navigate("/signup")} 
                   className="text-blue-600 hover:underline font-medium"
                 >
                   Créer un compte

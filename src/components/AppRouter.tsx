@@ -37,10 +37,10 @@ export function AppRouter() {
                 </>
               }
             />
-            {/* <Route path="/service" element={<ServiceDetailPage />} />
+            <Route path="/service" element={<ServiceDetailPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/dashboard" element={<ClientDashboard />} />
-            <Route path="/messages" element={
+            {/* <Route path="/messages" element={
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="mb-6">
                   <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
@@ -48,11 +48,11 @@ export function AppRouter() {
                 </div>
                 <MessagingPage />
               </div>
-            } />
+            } /> */}
             <Route path="/services" element={<ServiceListPage />} />
             <Route path="/create-service" element={<ServiceCreationPage />} />
-            <Route path="/my-services" element={<MyServicesPage />} /> */}
-            {/* <Route path="/login" element={<LoginPage />} /> */}
+            <Route path="/my-services" element={<MyServicesPage />} />
+            <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/email-verification" element={<EmailVerificationPage />} />
           </Routes>

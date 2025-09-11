@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Footer } from "./Footer";
 
 
-import { API_URL } from "../utils/env"; // Assure-toi que le chemin est correct
+import { API_URL } from "../utils/env"; 
 
 export function EmailVerificationPage() {
   const navigate = useNavigate();

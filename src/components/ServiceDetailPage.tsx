@@ -242,7 +242,7 @@ export function ServiceDetailPage() {
               variant="ghost" 
               size="sm" 
               className="text-gray-600 hover:text-gray-900"
-              onClick={() => navigate('services')}
+              onClick={() => navigate('/services')}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Retour aux services
@@ -260,13 +260,13 @@ export function ServiceDetailPage() {
             <div className="flex justify-center space-x-3">
               <Button
                 variant="outline"
-                onClick={() => navigate('services')}
+                onClick={() => navigate('/services')}
                 className="rounded-xl"
               >
                 Voir tous les services
               </Button>
               <Button
-                onClick={() => navigate('home')}
+                onClick={() => navigate('/')}
                 className="rounded-xl bg-blue-600 hover:bg-blue-700"
               >
                 Retour à l'accueil
@@ -291,7 +291,7 @@ export function ServiceDetailPage() {
             variant="ghost" 
             size="sm" 
             className="text-gray-600 hover:text-gray-900"
-            onClick={() => navigate('services')}
+            onClick={() => navigate('/services')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour aux services
@@ -406,7 +406,7 @@ export function ServiceDetailPage() {
                       
                       <Button 
                         className="mt-4 rounded-xl"
-                        onClick={() => navigate('messages')}
+                        onClick={() => navigate('/messages')}
                       >
                         <MessageCircle className="w-4 h-4 mr-2" />
                         Contacter le vendeur
@@ -476,12 +476,7 @@ export function ServiceDetailPage() {
                       </ul>
                       <Button 
                         className={`w-full rounded-xl ${pkg.popular ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
-                        onClick={() => navigate('checkout', { 
-                          serviceId: service.id,
-                          package: pkg.name, 
-                          price: pkg.price,
-                          title: service.title 
-                        })}
+                        onClick={() => navigate(`/checkout?serviceId=${service.id}&package=${pkg.name}&price=${pkg.price}&title=${encodeURIComponent(service.title)}`)}
                       >
                         Commander maintenant
                       </Button>
