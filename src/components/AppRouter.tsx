@@ -50,11 +50,12 @@ export function AppRouter() {
               </div>
             } /> */}
             <Route path="/services" element={<ServiceListPage />} />
-            <Route path="/create-service" element={<ServiceCreationPage />} />
+            <Route path="/create-service/:serviceId?" element={<ServiceCreationPage />} />
             <Route path="/my-services" element={<MyServicesPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/email-verification" element={<EmailVerificationPage />} />
+            <Route path="/service/" element={<ServiceCreationPage />} />
           </Routes>
         </main>
         <Footer />

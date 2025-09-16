@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Camera, Upload, X, ArrowLeft, Euro, Clock, Plus, Trash2, Image as ImageIcon } from "lucide-react";
 import { Button } from "./ui/button.tsx";
 import { Card } from "./ui/card.tsx";
@@ -7,8 +7,9 @@ import { Label } from "./ui/label.tsx";
 import { Textarea } from "./ui/textarea.tsx";
 import { Alert, AlertDescription } from "./ui/alert.tsx";
 import { CategoryCombobox } from "./CategoryCombobox.tsx";
-import { saveAllPrestation, saveOffreDraft, saveServiceDraft } from "../services/prestationService.ts";
-import { useNavigate } from "react-router-dom";
+import { saveAllPrestation, saveOffreDraft, getDraftById, saveServiceDraft, getPrestationById } from "../services/prestationService.ts";
+import { useNavigate, useParams } from "react-router-dom";
+import { getAllCategorie, Categorie } from "../services/categorieService";
 
 const initialCategories = [
   "Design & Créatif",
@@ -30,20 +31,35 @@ interface ServiceOffer {
 }
 
 export function ServiceCreationPage() {
-  // Ajout du hook useNavigate
   const navigate = useNavigate();
+  const { serviceId } = useParams<{ serviceId?: string }>();
 
+  const [serviceDraft, setServiceDraft] = useState<any>(null);
+  
   // États pour les informations du service
   const [serviceData, setServiceData] = useState({
-    nom_presentation: "Création de logo professionnel",
-    description: "Je réalise un logo unique et adapté à votre entreprise, livré avec plusieurs déclinaisons et formats.",
-    categoryId: initialCategories[0],
-    presentation_image: "https://images.unsplash.com/photo-1556745753-b2904692b3cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBzZXJ2aWNlJTIwYnVzaW5lc3N8ZW58MXx8fHwxNzU3NTg3MTAyfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+    nom_presentation: "",
+    description: "",
+    categoryId: "",
+    presentation_image: "" as string | null
   });
-  
-  const [categories, setCategories] = useState(initialCategories);
-  
-  // États pour les offres
+
+  // Remplace initialCategories par un tableau vide
+  const [categories, setCategories] = useState<Categorie[]>([]);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const data = await getAllCategorie();
+        setCategories(data);
+      } catch (error) {
+        // Gérer l'erreur si besoin
+        console.error("Erreur lors du chargement des catégories", error);
+      }
+    }
+    fetchCategories();
+  }, []);
+
   const [offers, setOffers] = useState<ServiceOffer[]>([
     {
       id: "1",
@@ -57,6 +73,21 @@ export function ServiceCreationPage() {
       ]
     }
   ]);
+
+  useEffect(() => {
+    async function fetchDraft() {
+      if (serviceId) {
+        const draft = await getDraftById(serviceId);
+        if (draft) {
+          // Met à jour les états avec les valeurs du draft
+          // if (draft.serviceData) setServiceData(draft.service);
+          // if (draft.categories) setCategories(draft.categories);
+          // if (draft.offers) setOffers(draft.liste_offres);
+        }
+      }
+    }
+    fetchDraft();
+  }, [serviceId]);
   
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -80,6 +111,33 @@ export function ServiceCreationPage() {
     description: false,
     categoryId: false
   });
+
+  // Charger les données si serviceId existe
+  useEffect(() => {
+    if (serviceId) {
+      getPrestationById(serviceId).then(data => {
+        if (data) {
+          setServiceData({
+            nom_presentation: data.nom_presentation || "",
+            description: data.description || "",
+            categoryId: data.categoryId || initialCategories[0],
+            presentation_image: data.presentation_image || ""
+          });
+          if (data.offres) setOffers(
+            data.offres.map((offer: any) => ({
+              ...offer,
+              nom_offre: offer.nom_offre ?? "",
+              prix: offer.prix ?? "",
+              delai_livraison_offre: offer.delai_livraison_offre ?? "",
+              caracteristiques: Array.isArray(offer.caracteristiques)
+                ? offer.caracteristiques.map((c: any) => c ?? "")
+                : [""]
+            }))
+          );
+        }
+      });
+    }
+  }, [serviceId]);
 
   // Gestion des données du service
   const handleServiceDataChange = (field: string, value: string) => {
@@ -116,16 +174,13 @@ export function ServiceCreationPage() {
         setError('Veuillez sélectionner un fichier image valide.');
         return;
       }
-      
       // Vérification de la taille (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setError('La taille du fichier ne doit pas dépasser 5MB.');
         return;
       }
-      
       setImageFile(file);
-      setServiceData(prev => ({ ...prev, presentation_image: file }));
-      
+      setServiceData(prev => ({ ...prev, presentation_image: "" })); // On efface l'URL si fichier choisi
       // Créer un aperçu
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -161,7 +216,8 @@ export function ServiceCreationPage() {
 
   // Formater le prix avec séparateur de milliers
   const formatPrice = (value: string): string => {
-    const numericValue = value.replace(/[^\d]/g, '');
+    const safeValue = typeof value === "string" ? value : String(value ?? "");
+    const numericValue = safeValue.replace(/[^\d]/g, '');
     if (!numericValue) return '';
     return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
   };
@@ -219,9 +275,15 @@ export function ServiceCreationPage() {
     const newFieldErrors = {
       nom_presentation: !serviceData.nom_presentation.trim() ? "Ce champ est requis." : "",
       description: !serviceData.description.trim() ? "Ce champ est requis." : "",
-      categoryId: !serviceData.categoryId.trim() ? "Ce champ est requis." : ""
+      categoryId: !String(serviceData.categoryId).trim() ? "Ce champ est requis." : ""
     };
     setFieldErrors(newFieldErrors);
+
+    // Vérification image obligatoire
+    if (!imageFile && !serviceData.presentation_image) {
+      setError("Veuillez ajouter une image pour votre service.");
+      return;
+    }
 
     if (
       newFieldErrors.nom_presentation ||
@@ -282,7 +344,8 @@ export function ServiceCreationPage() {
     if (
       !serviceData.nom_presentation.trim() ||
       !serviceData.description.trim() ||
-      !serviceData.categoryId.trim()
+      !String(serviceData.categoryId).trim() ||
+      (!imageFile && !serviceData.presentation_image)
     ) {
       return false;
     }
@@ -426,7 +489,7 @@ export function ServiceCreationPage() {
                             onClick={() => {
                               setImagePreview(null);
                               setImageFile(null);
-                              setServiceData(prev => ({ ...prev, presentation_image: null }));
+                              setServiceData(prev => ({ ...prev, presentation_image: "" })); // Correction ici
                               // Réinitialiser les inputs file
                               const fileInput = document.getElementById('service-image') as HTMLInputElement;
                               if (fileInput) fileInput.value = '';
@@ -461,12 +524,12 @@ export function ServiceCreationPage() {
                     type="url"
                     placeholder="Collez l'URL de votre image ici"
                     className="rounded-xl text-sm"
-                    value={!imageFile ? (typeof serviceData.presentation_image === 'string' ? serviceData.presentation_image : '') : ''}
+                    value={!imageFile ? (typeof serviceData.presentation_image === 'string' ? serviceData.presentation_image ?? "" : "") : ""}
                     onChange={(e) => {
                       if (!imageFile) {
                         const url = e.target.value;
                         setServiceData(prev => ({ ...prev, presentation_image: url }));
-                        setImagePreview('');
+                        setImagePreview(url);
                       }
                     }}
                     disabled={!!imageFile}
@@ -505,7 +568,7 @@ export function ServiceCreationPage() {
                 </Label>
                 <Input
                   id="title"
-                  placeholder="Ex: Création de logo professionnel"
+                  placeholder=""
                   value={serviceData.nom_presentation}
                   onChange={(e) => handleServiceDataChange('nom_presentation', e.target.value)}
                   onBlur={(e) => handleBlur('nom_presentation', e.target.value)}
@@ -523,7 +586,7 @@ export function ServiceCreationPage() {
                 </Label>
                 <Textarea
                   id="description"
-                  placeholder="Décrivez en détail ce que vous proposez..."
+                  placeholder=""
                   rows={4}
                   value={serviceData.description}
                   onChange={(e) => handleServiceDataChange('description', e.target.value)}
@@ -543,7 +606,7 @@ export function ServiceCreationPage() {
                 <CategoryCombobox
                   value={serviceData.categoryId}
                   onChange={(value) => {
-                    handleServiceDataChange('categoryId', value);
+                    handleServiceDataChange('categoryId', String(value));
                     setTouchedFields(prev => ({ ...prev, categoryId: true }));
                   }}
                   categories={categories}
@@ -551,8 +614,6 @@ export function ServiceCreationPage() {
                   placeholder="Sélectionner ou ajouter une catégorie"
                   label=""
                   required={true}
-                  id="category-combobox"
-                  onBlur={() => handleBlur('categoryId', serviceData.categoryId)}
                 />
                 {(fieldErrors.categoryId && touchedFields.categoryId) && (
                   <p className="text-xs text-red-600 mt-1">{fieldErrors.categoryId}</p>
@@ -614,7 +675,7 @@ export function ServiceCreationPage() {
                         </Label>
                         <Input
                           id={`offer-title-${offer.id}`}
-                          placeholder="Ex: Basique, Standard, Premium"
+                          placeholder=""
                           value={offer.nom_offre}
                           onChange={(e) => updateOffer(offer.id, 'nom_offre', e.target.value)}
                           className="rounded-xl"
@@ -633,7 +694,7 @@ export function ServiceCreationPage() {
                           <Input
                             id={`offer-price-${offer.id}`}
                             type="text"
-                            placeholder="0"
+                            placeholder=""
                             value={formatPrice(offer.prix)}
                             onChange={(e) => {
                               const formattedValue = formatPrice(e.target.value);
@@ -656,7 +717,7 @@ export function ServiceCreationPage() {
                         </Label>
                         <Input
                           id={`offer-delai-${offer.id}`}
-                          placeholder="Ex: 24h, 48h"
+                          placeholder=""
                           value={offer.delai_livraison_offre}
                           onChange={(e) => updateOffer(offer.id, 'delai_livraison_offre', e.target.value)}
                           className="rounded-xl"
@@ -675,8 +736,8 @@ export function ServiceCreationPage() {
                           <div key={carIndex} className="flex items-center space-x-2">
                             <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0"></div>
                             <Input
-                              placeholder="Décrivez une caractéristique de cette offre"
-                              value={caracteristique}
+                              placeholder=""
+                              value={caracteristique ?? ""}
                               onChange={(e) => updateCaracteristique(offer.id, carIndex, e.target.value)}
                               className="flex-1 rounded-xl"
                             />

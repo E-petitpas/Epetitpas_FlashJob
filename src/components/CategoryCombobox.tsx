@@ -3,12 +3,13 @@ import { ChevronDown, Plus, Check } from "lucide-react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
+import type { Categorie } from "../services/categorieService";
 
 interface CategoryComboboxProps {
-  value: string;
-  onChange: (value: string) => void;
-  categories: string[];
-  onAddCategory?: (category: string) => void;
+  value: string | number; // id de la catégorie sélectionnée
+  onChange: (id: string | number) => void;
+  categories: Categorie[];
+  onAddCategory?: (categoryName: string) => void;
   placeholder?: string;
   label?: string;
   required?: boolean;
@@ -24,34 +25,32 @@ export function CategoryCombobox({
   required = false
 }: CategoryComboboxProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [inputValue, setInputValue] = useState(value);
-  const [filteredCategories, setFilteredCategories] = useState(categories);
+  const [inputValue, setInputValue] = useState("");
+  const [filteredCategories, setFilteredCategories] = useState<Categorie[]>(categories);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Trouver la catégorie sélectionnée
+  const selectedCategory = categories.find(cat => String(cat.id) === String(value));
+
+  // Mettre à jour l'input quand la valeur change de l'extérieur
+  useEffect(() => {
+    setInputValue(selectedCategory ? selectedCategory.nom : "");
+  }, [value, categories]);
+
   // Filtrer les catégories selon la saisie
   useEffect(() => {
     if (inputValue) {
       const filtered = categories.filter(category =>
-        category.toLowerCase().includes(inputValue.toLowerCase())
+        category.nom.toLowerCase().includes(inputValue.toLowerCase())
       );
       setFilteredCategories(filtered);
     } else {
       setFilteredCategories(categories);
     }
   }, [inputValue, categories]);
-
-  // Mettre à jour l'input quand la valeur change de l'extérieur
-  useEffect(() => {
-    setInputValue(value);
-  }, [value]);
-
-  // Mettre à jour les catégories filtrées quand les catégories changent
-  useEffect(() => {
-    setFilteredCategories(categories);
-  }, [categories]);
 
   // Fermer la dropdown si on clique ailleurs
   useEffect(() => {
@@ -73,28 +72,19 @@ export function CategoryCombobox({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
-    onChange(newValue);
     setIsOpen(true);
   };
 
   const handleInputFocus = () => {
     setIsOpen(true);
-    // Si l'input est vide, afficher toutes les catégories
-    if (!inputValue) {
-      setFilteredCategories(categories);
-    }
+    if (!inputValue) setFilteredCategories(categories);
   };
 
-  const handleCategorySelect = (category: string) => {
-    if (category === "Autres") {
-      setShowAddForm(true);
-      setNewCategoryName("");
-    } else {
-      setInputValue(category);
-      onChange(category);
-      setIsOpen(false);
-      inputRef.current?.focus();
-    }
+  const handleCategorySelect = (category: Categorie) => {
+    setInputValue(category.nom);
+    onChange(category.id);
+    setIsOpen(false);
+    inputRef.current?.focus();
   };
 
   const handleAddNewCategory = () => {
@@ -102,7 +92,6 @@ export function CategoryCombobox({
       onAddCategory(newCategoryName.trim());
       setShowAddForm(false);
       setNewCategoryName("");
-      // Ouvrir le dropdown pour montrer la nouvelle catégorie ajoutée
       setIsOpen(true);
     }
   };
@@ -118,7 +107,7 @@ export function CategoryCombobox({
       setIsOpen(false);
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (filteredCategories.length > 0 && inputValue.toLowerCase() === filteredCategories[0].toLowerCase()) {
+      if (filteredCategories.length > 0 && inputValue.toLowerCase() === filteredCategories[0].nom.toLowerCase()) {
         handleCategorySelect(filteredCategories[0]);
       } else {
         setIsOpen(false);
@@ -130,13 +119,13 @@ export function CategoryCombobox({
   };
 
   const isNewCategory = inputValue && !categories.some(cat => 
-    cat.toLowerCase() === inputValue.toLowerCase()
+    cat.nom.toLowerCase() === inputValue.toLowerCase()
   );
 
   return (
     <div className="space-y-3">
       <Label className="text-gray-900">
-        {label} {required}
+        {label} {required && <span className="text-red-500">*</span>}
       </Label>
       
       <div className="relative">
@@ -155,10 +144,7 @@ export function CategoryCombobox({
             type="button"
             onClick={() => {
               setIsOpen(!isOpen);
-              // Si on ouvre le dropdown et l'input est vide, afficher toutes les catégories
-              if (!isOpen && !inputValue) {
-                setFilteredCategories(categories);
-              }
+              if (!isOpen && !inputValue) setFilteredCategories(categories);
             }}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
           >
@@ -177,24 +163,13 @@ export function CategoryCombobox({
               {filteredCategories.length > 0 ? (
                 filteredCategories.map((category) => (
                   <button
-                    key={category}
+                    key={category.id}
                     type="button"
                     onClick={() => handleCategorySelect(category)}
-                    className={`w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center justify-between group transition-colors ${
-                      category === "Autres" ? "border-t border-gray-100" : ""
-                    }`}
+                    className={`w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center justify-between group transition-colors`}
                   >
-                    <span className={`${category === "Autres" ? "text-blue-600 font-medium" : "text-gray-900"}`}>
-                      {category === "Autres" ? (
-                        <div className="flex items-center space-x-2">
-                          <Plus className="w-4 h-4" />
-                          <span>{category}</span>
-                        </div>
-                      ) : (
-                        category
-                      )}
-                    </span>
-                    {inputValue.toLowerCase() === category.toLowerCase() && category !== "Autres" && (
+                    <span className="text-gray-900">{category.nom}</span>
+                    {String(value) === String(category.id) && (
                       <Check className="w-4 h-4 text-blue-600" />
                     )}
                   </button>
@@ -213,7 +188,7 @@ export function CategoryCombobox({
                   )}
                   <button
                     type="button"
-                    onClick={() => handleCategorySelect(inputValue)}
+                    onClick={() => setShowAddForm(true)}
                     className="w-full px-4 py-2 text-left hover:bg-blue-50 flex items-center space-x-2 group transition-colors"
                   >
                     <Plus className="w-4 h-4 text-blue-600" />
