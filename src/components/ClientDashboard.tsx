@@ -381,7 +381,9 @@ function ServicesTab({ navigate }: { navigate: (route: string, params?: any) => 
   useEffect(() => {
     const loadServices = async () => {
       try {
-        const userId = 'current_user'; // In real app, get from auth
+        // ETO MILA OVAINA MAKA NY SERVICE ANLE USER
+        const storedUser = localStorage.getItem("user");
+        const userId = storedUser ? JSON.parse(storedUser).id : null;
         const response = await fetch(
           `https://${projectId}.supabase.co/functions/v1/make-server-6e866e97/services?userId=${userId}`,
           {
@@ -391,7 +393,7 @@ function ServicesTab({ navigate }: { navigate: (route: string, params?: any) => 
           }
         );
 
-        if (response.ok) {
+        if (userId) {
           const data = await response.json();
           if (data.services && data.services.length > 0) {
             const userServices = data.services.map((service: any) => ({
@@ -404,7 +406,7 @@ function ServicesTab({ navigate }: { navigate: (route: string, params?: any) => 
             setServices(mockServices);
           }
         } else {
-          console.error('Failed to fetch user services');
+          console.error('Failed to fetch user services, Please connect the user');
           setServices(mockServices);
         }
       } catch (error) {
@@ -460,7 +462,7 @@ function ServicesTab({ navigate }: { navigate: (route: string, params?: any) => 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">Mes services</h1>
+        <h1 className="text-2xl font-bold text-gray-900"> Mes services</h1>
         <div className="text-center py-12">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-500">Chargement de vos services...</p>
@@ -645,6 +647,7 @@ export function ClientDashboard() {
   const sidebarItems = [
     { id: "orders", label: "Mes commandes", icon: Package },
     { id: "services", label: "Mes services", icon: Briefcase },
+    { id: "drafts", label: "Brouillon", icon: FileText }, 
     { id: "messages", label: "Messages", icon: MessageCircle },
     { id: "reviews", label: "Mes avis", icon: Star },
     { id: "profile", label: "Profil", icon: User },
@@ -847,7 +850,7 @@ export function ClientDashboard() {
                               <Button 
                                 size="sm" 
                                 className="rounded-xl"
-                                onClick={() => navigate('service', { serviceId: order.id })}
+                                onClick={() => navigate(`/service/${order.id}`)}
                               >
                                 Voir détails
                               </Button>
@@ -875,6 +878,10 @@ export function ClientDashboard() {
             )}
 
             {activeTab === "services" && (
+              <ServicesTab navigate={navigate} />
+            )}
+
+            {activeTab === "drafts" && (
               <ServicesTab navigate={navigate} />
             )}
 

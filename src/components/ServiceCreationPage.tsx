@@ -7,7 +7,7 @@ import { Label } from "./ui/label.tsx";
 import { Textarea } from "./ui/textarea.tsx";
 import { Alert, AlertDescription } from "./ui/alert.tsx";
 import { CategoryCombobox } from "./CategoryCombobox.tsx";
-// Ajout de l'import pour navigateTo
+import { saveAllPrestation, saveOffreDraft, saveServiceDraft } from "../services/prestationService.ts";
 import { useNavigate } from "react-router-dom";
 
 const initialCategories = [
@@ -35,10 +35,10 @@ export function ServiceCreationPage() {
 
   // États pour les informations du service
   const [serviceData, setServiceData] = useState({
-    nom_presentation: "",
-    description: "",
-    categoryId: "",
-    presentation_image: null as File | string | null
+    nom_presentation: "Création de logo professionnel",
+    description: "Je réalise un logo unique et adapté à votre entreprise, livré avec plusieurs déclinaisons et formats.",
+    categoryId: initialCategories[0],
+    presentation_image: "https://images.unsplash.com/photo-1556745753-b2904692b3cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBzZXJ2aWNlJTIwYnVzaW5lc3N8ZW58MXx8fHwxNzU3NTg3MTAyfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
   });
   
   const [categories, setCategories] = useState(initialCategories);
@@ -47,10 +47,14 @@ export function ServiceCreationPage() {
   const [offers, setOffers] = useState<ServiceOffer[]>([
     {
       id: "1",
-      nom_offre: "",
-      prix: "",
-      delai_livraison_offre: "",
-      caracteristiques: [""]
+      nom_offre: "Logo Basique",
+      prix: "5000",
+      delai_livraison_offre: "48h",
+      caracteristiques: [
+        "1 proposition de logo",
+        "Livraison en PNG et JPG",
+        "2 retouches incluses"
+      ]
     }
   ]);
   
@@ -58,6 +62,7 @@ export function ServiceCreationPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   // Ajoutez cet état pour les erreurs de champs du service
   const [fieldErrors, setFieldErrors] = useState({
@@ -154,17 +159,14 @@ export function ServiceCreationPage() {
     }
   };
 
-  // Fonction pour formater le prix avec séparateur de milliers
+  // Formater le prix avec séparateur de milliers
   const formatPrice = (value: string): string => {
-    // Supprimer tous les caractères non numériques
     const numericValue = value.replace(/[^\d]/g, '');
     if (!numericValue) return '';
-    
-    // Ajouter des espaces comme séparateurs de milliers
     return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
   };
 
-  // Fonction pour récupérer la valeur numérique pure
+  // Récupérer la valeur numérique pure
   const parsePrice = (formattedValue: string): string => {
     return formattedValue.replace(/\s/g, '');
   };
@@ -296,6 +298,34 @@ export function ServiceCreationPage() {
     return true;
   };
 
+  const saveServiceToDraft = () => {
+    // const draft = {
+    //   service: serviceData,
+    //   offers,
+    //   imagePreview,
+    //   imageFile: imageFile ? imageFile.name : null 
+    // };
+    // localStorage.setItem("serviceDraft", JSON.stringify(draft));
+    console.log('huhuhuhuhu SERVICE= ', serviceData);
+    const saved= saveServiceDraft(serviceData);
+    if (saved) setSuccess("Brouillon enregistré !");
+    else setError("Brouillon non enregistré !");
+  };
+
+  const saveOffreToDraft = () => {
+    // const draft = {
+    //   service: serviceData,
+    //   offers,
+    //   imagePreview,
+    //   imageFile: imageFile ? imageFile.name : null // On ne peut pas stocker le fichier, juste le nom
+    // };
+    // localStorage.setItem("serviceDraft", JSON.stringify(draft));
+    console.log('huhuhuhuhu OFFRE= ', offers);
+    const saved= saveOffreDraft(offers);
+    if (saved) setSuccess("Brouillon des offres enregistré !");
+    else setError("Brouillon des offres non enregistré !");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -319,6 +349,11 @@ export function ServiceCreationPage() {
         {error && (
           <Alert className="mb-6 border-red-200 bg-red-50">
             <AlertDescription className="text-red-700">{error}</AlertDescription>
+          </Alert>
+        )}
+        {success && (
+          <Alert className="mb-6 border-green-200 bg-green-50">
+            <AlertDescription className="text-green-700">{success}</AlertDescription>
           </Alert>
         )}
 
@@ -524,6 +559,17 @@ export function ServiceCreationPage() {
                 )}
               </div>
             </div>
+            {/* Bouton Enregistrer dans le brouillon */}
+            <div className="flex justify-end mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={saveServiceToDraft}
+                className="rounded-xl px-8"
+              >
+                Enregistrer dans le brouillon
+              </Button>
+            </div>
           </Card>
 
           {/* Section 2: Tarification et offres */}
@@ -658,6 +704,17 @@ export function ServiceCreationPage() {
                           Ajouter une autre caractéristique
                         </Button>
                       </div>
+                    </div>
+
+                    <div className="flex justify-end mt-6">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={saveOffreToDraft}
+                        className="rounded-xl px-8"
+                      >
+                        Enregistrer dans le brouillon
+                      </Button>
                     </div>
                   </Card>
                 </div>
